@@ -1,12 +1,15 @@
-% Script to produce the graphs
+% Sensitivity analysis 
+% Hier werden Parametervariationen durchgeführt und Plots erstellt
 
-function SinglStressorGraphs
+function StressorGraphsCd_
 
-opt = load('parametersSingleStressor.mat');
+opt = load('parametersCd.mat');
+
 
 beta = opt.BestParams(1);
 mu = opt.BestParams(2);
 alfa = opt.BestParams(3);
+
 
 % plots for showing the model for the eperimental dataset used
 BestParams = [beta mu alfa];
@@ -15,10 +18,11 @@ N0Exp = 100; % initial poluation size or percent function
 TExpx = 0:21; %days
 % length(T)
 
-CtabExpy = [0 500 1000 2000 3000 4000 5000 10000 25000]; % concentration eg in ug/L 
+CtabExpy = [0 500 1000 2000 3000 4000 5000 10000 25000]; % ug/L or ppm data by Sunila et al 1981
+% length(Ctab)
 
 for i = 1:length(CtabExpy)
-    YExp = SingleStressorModell(CtabExpy(i),BestParams,TExpx,N0Exp);
+    YExp = Schadstoff_ModellCd_(CtabExpy(i),BestParams,TExpx,N0Exp);
     NmodExp(:,i) = YExp(:,2);
 end
 
@@ -65,7 +69,7 @@ Nexp = [100 100 100 100 100 100 100 100 100;
     100 98 99 82 4 2 68 6 13;
     100 98 98 81 2 2 65 2 11;
     100 98 98 81 2 2 53 2 10;
-    100 98 97 80 1 1 45 1 9]; % example of a dataset showing responses of the organism for different exposure times and concentrations
+    100 98 97 80 1 1 45 1 9]; % data by Sunila et al 1981
 
 NexpGraph = Nexp(:);
 
@@ -76,7 +80,6 @@ vq = griddata(CtabnewX,TExpnewY,NmodExpGraph,xq,yq);
 mesh(xq,yq,vq,'FaceAlpha',0.3)
 hold on
 
-% create the graph
 plot3(CtabnewX,TExpnewY,NexpGraph,'o')
 ax = gca;
 ax.FontSize = 15;     % set font size for axes labels
@@ -85,6 +88,9 @@ legend('model','sample points','Location','NorthWest')
 xlabel('concentration in ug/L','FontSize',15)
 ylabel('exposure time in days','FontSize',15)
 zlabel('observation','FontSize',15)
+
+
+
 
 YExpz = [];
 for j = 1:length(CtabExpy)
@@ -104,6 +110,7 @@ end
 
 
 % plots for general model behavior
+
 C = 30; % here in ug/ L,  concentration or intensity of the stressor
 
 parameter0 = [beta,mu,alfa];
@@ -111,25 +118,27 @@ parameter0 = [beta,mu,alfa];
 xbeta   = [0.2,0.5,1,2]*beta;   
 xmu     = [0.1,1,100]*mu;       
 xalfa   = [0,5,50,150]*alfa;    
-xC      = [0.5,0.2,1,2]*C;     
+xC      = [0.5,0.2,1,2]*C;      
 xpar = {xbeta;xmu;xalfa;xC};
-N0   = 100;                     % 100% function, 100% survival or similar
+N0   = 100;               % Anfangspopulation or 100% function or optimum
 
-% time steps
+% Zeitpunkte
 T = 0:1:1000;
 
-for par = 1:3                  % loop for the parameters
+for par = 1:3                  % Loop über C und die  Parameter
     figure(par+1); clf; hold on
     parameter = parameter0;
     L = length(xpar{par});
     
-    % axis properties
+    % Achsen-Skalen
     Cmax = 12;
     mmax = 0.5;
     
-    for i = 1:L               	
+    for i = 1:L               	% Loop über die Parameterwerte in Liste
+        
         if par==1; parameter(1) = xbeta(i);
             Titel = ['effect rate  ','beta =  ',num2str(xbeta)]; end
+       
         if par==2; parameter(2) = xmu(i);
             Titel = ['1/time delay  ','mu =  ',num2str(xmu)]; end
         if par==3; parameter(3) = xalfa(i);
@@ -137,8 +146,8 @@ for par = 1:3                  % loop for the parameters
         if par==7; C = xC(i);
             Titel = ['ext. concentration      ','C =  ',num2str(xC)]; end
         
-        % call of the main model
-        Y = SSinglStressor_Model(C,parameter,T,N0);
+        % Aufruf des Modells
+        Y = Stressor_modelCd_(C,parameter,T,N0);
         Cint = Y(:,1);
         N    = Y(:,2);
         a    = Y(:,3);
@@ -151,15 +160,17 @@ for par = 1:3                  % loop for the parameters
         ylabel('percent survival')
         Plot(3,i,T,a,'b',0.02,' ',i==L);
         ylabel('acclimatisation factor')
-        %Plot(4,i,T,m,'k',0.07,' ',i==L);
+        %Plot 
         mmax = Plot(4,i,T,m,'k',mmax,' ',i==L);
         ylabel('effect strength')
         xlabel('time in days')
     end
-end
+    
+   
+end 
 end
 
-% result plot
+% Ergebnisplot
 function Ymax = Plot(sub,i,T,Y,col,Ymax,txt,letzt)
 tend = max(T);
 if max(Y)>Ymax
@@ -170,17 +181,18 @@ hold on;
 axis([0 tend 0 Ymax])
 if letzt
     text(0.65*tend,0.9*Ymax,txt);
+    %col = [col,':'];
     col = [col,'-'];
 else
     switch i
         case 1
-            % low value
+            %col = [col,'-']; % low
             col = [col,':'];
         case 2
-            % moderate value
+            %col = [col,'--']; % moderate
             col = [col,'-.'];
         case 3
-            % high value
+            %col = [col,'-.']; % high
             col = [col,'--'];
     end
 end

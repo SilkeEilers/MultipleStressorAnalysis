@@ -1,10 +1,10 @@
-% Start value analysis
-
-tic
-
+% start value analysis
 saveStartValueParamsCd = 'StartValueParamsCd.mat';
 
-% Literature data for different concentrations and exposure times
+% Literature data
+% mortality data derived from graphs by Sunila 1981 Toxicity of copper and
+% cadmium to Mytilus edulis in brakish water Ann. Zoo. Fennici 18. 213-223
+
 
 Nexp = [100 100 100 100 100 100 100 100 100; 
     100 100 100 100 98 92 97 92 67; 
@@ -34,12 +34,18 @@ N0 = Nexp(1,1);
 
 % data from the experimental setup (conditions)
 % exposure times
-T = 0:21; %days
+T = 0:21; %days, data by Sunila et al 1981
 
 % concentrations tested
-Ctab = [0 500 1000 2000 3000 4000 5000 10000 25000]; % ug/L
+Ctab = [0 500 1000 2000 3000 4000 5000 10000 25000]; % ug/L calculated from
+% ppm unit data by Sunila et al 1981, Fig. 2
 
 BestParamValues = [];
+
+% test different start values
+% StartValuesB = [0.1 0.2 0.3]; %linspace(0,1);
+% StartValuesMu = [0.1 0.2 0.3]; %linspace(0,50);
+% StartValuesA = [0.1 0.2 0.3];%linspace(0,1);
 
 StartValuesB = linspace(0,1,10); % numbers between 0 an 1 with 10 points
 StartValuesMu = linspace(0,50,10); % numbers between 0 an 50 with 10 points
@@ -102,6 +108,7 @@ MaxProbValueMuMinBorder = edges(PositionMaxProb);
 MaxProbValueMuMaxBorder = edges(PositionMaxProb+1);
 
 StartValueMu = (MaxProbValueMuMinBorder+MaxProbValueMuMaxBorder)/2;
+% result: 2.5
 
 % alfa
 [N,edges] = histcounts(BestParamValuesA, 'Normalization', 'probability');
@@ -117,7 +124,7 @@ FinalStartValues = [StartValueBeta StartValueMu StartValueA];
 
 save(saveStartValueParamsCd,'BestParamValues', 'FinalStartValues')
 
-% save parameters
+
 toc
 t = toc;
 save(saveStartValueParametersCd,'BestParamValues')

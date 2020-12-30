@@ -1,8 +1,13 @@
-% Optimization with LeastSquares
+% stressor model based on Kooijman and Bedaux 1996 Analysis of toxicity
+% data page 64 "Toxicity test on survival". Model modified. 
+% Data for the blue mussel Mytilus edulis
 
 saveparametersCd = 'parametersCd.mat';
 
-% Literature data example
+% Literature data
+% mortality data derived from graphs by Sunila 1981 Toxicity of copper and
+% cadmium to Mytilus edulis in brakish water Ann. Zoo. Fennici 18. 213-223
+
 
 Nexp = [100 100 100 100 100 100 100 100 100; 
     100 100 100 100 98 92 97 92 67; 
@@ -32,10 +37,11 @@ N0 = Nexp(1,1);
 
 % data from the experimental setup (conditions)
 % exposure times
-T = 0:21; %days
+T = 0:21; %days, data by Sunila et al 1981
 
 % concentrations tested
-Ctab = [0 500 1000 2000 3000 4000 5000 10000 25000]; % ug/L 
+Ctab = [0 500 1000 2000 3000 4000 5000 10000 25000]; % ug/L calculated from
+% ppm unit data by Sunila et al 1981, Fig. 2
 
 % parameters - initial guesses
 betaCdIni = 0.002;       % mortality rate pro CCdT, 
@@ -45,9 +51,13 @@ alfaCdIni = 0.002;      % speed of adaptation, relative to mortality
 ParamsIni = [betaCdIni,muCdIni,alfaCdIni];
 
 % Minimize the difference between the model and the data
+%BestParams = lsqnonlin(@(param) FitModel(param,Ctab,T,N0,Nexp),ParamsIni,[0 0 0],[1 50 1]);
 
+%BestParams = fmincon(@(param) FitModel(param,Ctab,T,N0,Nexp),ParamsIni,[],[],[],[],[0 0 0],[1 50 1]);
 [x,fval,exitflag,output,lambda,grad,hessian] = fmincon(@(param) FitModel(param,Ctab,T,N0,Nexp),ParamsIni,[],[],[],[],[0 0 0],[1 50 1]);
 % plot the original and experimental data
+%%%ModelNew = Schadstoff_ModellCd_(Ctab(i),BestParams,T,N0);
+
 
 % calculate the standard error
 BestParams=x;
@@ -65,6 +75,11 @@ MeanRelError = mean(relAbsDiff);
 StandardDeviation = std(abs(DiffModelDataDecimal));
 StandardRelDeviation = std(relAbsDiff);
 StandardError = std(abs(DiffModelDataDecimal))/sqrt(length(DiffModelDataDecimal));
+
+% old (only for comparison)
+% initError = sum(FitModel(ParamsIni,Ctab,T,N0,Nexp).^2)
+% bestError = sum(FitModel(BestParams,Ctab,T,N0,Nexp).^2)
+
 
 % display the results
 disp('Nexp')
@@ -107,12 +122,13 @@ function DiffModelData = FitModel(Params,Ctab,T,N0,Nexp)
     Nmod=Model(Params,Ctab,T,N0);
     DiffModelDatapre = Nexp(:)-Nmod(:);
     DiffModelData=sum(abs(DiffModelDatapre));
-   end
+    %DiffModelData=sum((DiffModelData).^2);
+end
 
 function Nmod = Model(Params,Ctab,T,N0)
     % N0 is the first value of the matrix to start (position) (e.g. initial population)
     for i = 1:length(Ctab)
-        Y = Schadstoff_ModellCd_(Ctab(i),Params,T,N0);
+        Y = Stressor_modelCd_(Ctab(i),Params,T,N0);
         Nmod(:,i) = Y(:,2);
     end
 end

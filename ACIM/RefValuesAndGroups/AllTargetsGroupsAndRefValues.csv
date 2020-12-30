@@ -1,0 +1,7 @@
+groupname 1;values group 1;groupname 2;values group 2;groupname 2;values group 2;groupname 3;values group 3
+targetname 1;value;targetname 7;value;targetname 13;value;targetname 17;value
+targetname 2;value;targetname 8;value;targetname 14;value;targetname 18;value
+targetname 3;value;targetname 9;value;targetname 15;value;;
+targetname 4;value;targetname 10;value;targetname 16;value;;
+targetname 5;value;targetname 11;value;;;;
+targetname 6;value;targetname 12;value;;;;
